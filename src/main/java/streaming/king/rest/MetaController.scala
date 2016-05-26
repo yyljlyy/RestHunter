@@ -1,12 +1,14 @@
 package streaming.king.rest
 
 import com.google.inject.Inject
+import com.jayway.jsonpath.JsonPath
 import net.csdn.annotation.rest.At
 import net.csdn.common.collections.WowCollections
+import net.csdn.common.path.Url
 import net.csdn.modules.http.ApplicationController
 import net.csdn.modules.http.RestRequest.Method._
-import serviceframework.dispatcher.StrategyDispatcher
-import streaming.core.strategy.platform.PlatformManager
+import net.sf.json.JSONObject
+import org.apache.http.client.fluent.Request
 import streaming.king.rest.service.{ESService, Paginate}
 
 /**
@@ -42,6 +44,14 @@ class MetaController @Inject()(esService: ESService) extends ApplicationControll
   def delete = {
     esService.jdelete(param("id"))
     redirectTo("/resthunter/list", WowCollections.map())
+  }
+
+  @At(path = Array("/resthunter/path/validate"), types = Array(GET))
+  def pathValidate = {
+    val url = param("url")
+    val path = param("path")
+    val res = Request.Get(new Url(url).toURI).execute().returnContent().asString()
+    render(200, JSONObject.fromObject(JsonPath.read(res, path)).toString)
   }
 
   def cPaginate = {
