@@ -20,7 +20,7 @@ class ESService @Inject()(settings: Settings,
 
   def platformManager = PlatformManager.getOrCreate
 
-  def dispatcher = StrategyDispatcher.getOrCreate()
+  def dispatcher = StrategyDispatcher.getOrCreate(null)
 
   def runtime(name: String) = PlatformManager.getRuntime(name, new java.util.HashMap[Any, Any]())
 

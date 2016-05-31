@@ -8,7 +8,7 @@ object JSONPathExtractor {
 
   import net.liftweb.json._
 
-  def parse(path: String) = {
+  def parse(json:String,path:String) = {
 
   }
 

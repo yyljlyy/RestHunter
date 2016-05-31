@@ -9,7 +9,7 @@ import net.csdn.modules.http.ApplicationController
 import net.csdn.modules.http.RestRequest.Method._
 import net.sf.json.JSONObject
 import org.apache.http.client.fluent.Request
-import streaming.king.rest.service.{ESService, Paginate}
+import streaming.king.rest.service.{JSONPath, ESService, Paginate}
 
 /**
  * 5/25/16 WilliamZhu(allwefantasy@gmail.com)
@@ -51,7 +51,8 @@ class MetaController @Inject()(esService: ESService) extends ApplicationControll
     val url = param("url")
     val path = param("path")
     val res = Request.Get(new Url(url).toURI).execute().returnContent().asString()
-    render(200, JSONObject.fromObject(JsonPath.read(res, path)).toString)
+    val value = JSONPath.read(res, path).toString
+    render(200, value)
   }
 
   def cPaginate = {

@@ -2,12 +2,11 @@ package streaming.king.rest.transform
 
 import java.util
 
-import com.jayway.jsonpath.JsonPath
 import org.apache.log4j.Logger
 import org.apache.spark.streaming.dstream.DStream
 import serviceframework.dispatcher.{Compositor, Processor, Strategy}
 import streaming.core.compositor.spark.streaming.CompositorHelper
-import streaming.king.rest.service.JSONPathExtractor
+import streaming.king.rest.service.{JSONPath, JSONPathExtractor}
 
 import scala.collection.JavaConversions._
 
@@ -50,7 +49,8 @@ class JSonExtractCompositor[T] extends Compositor[T] with CompositorHelper {
       val newValue = keyWithPath.map { kPath =>
         val key = kPath._1
         val path = kPath._2
-        (key, JsonPath.read(json, path))
+        val value = JSONPath.read(json, path).asInstanceOf[Any]
+        (key, value)
       }
 
       if (_flat) {
@@ -74,49 +74,49 @@ object Test {
   def main(args: Array[String]): Unit = {
     import net.liftweb.json._
     val akg = parse( s""" {
-                        |  "took": 2,
-                        |  "timed_out": false,
-                        |  "_shards": {
-                        |      "total": 5,
-                        |      "successful": 5,
-                        |      "failed": 0
-                        |  },
-                        |  "hits": {
-                        |      "total": 1,
-                        |      "max_score": 1,
-                        |      "hits": [
-                        |          {
-                        |              "_index": "monitor_db_rest",
-                        |              "_type": "rest",
-                        |              "_id": "1",
-                        |              "_score": 1,
-                        |              "_timestamp": 1464154284797,
-                        |              "_source": {
-                        |                  "ip": "10.148.16.101",
-                        |                  "logtype": "ESAPI",
-                        |                  "appname": "letv-online-analysis",
-                        |                  "url": "http://10.148.16.101:9200/_cat/count?format=json",
-                        |                  "method": "GET",
-                        |                  "key_bulk_count": "count"
-                        |              }
-                        |          },
-                        |          {
-                        |              "_index": "monitor_db_rest",
-                        |              "_type": "rest",
-                        |              "_id": "1",
-                        |              "_score": 1,
-                        |              "_timestamp": 1464154284797,
-                        |              "_source": {
-                        |                  "ip": "10.148.16.101",
-                        |                  "logtype": "ESAPI",
-                        |                  "appname": "letv-online-analysis",
-                        |                  "url": "http://10.148.16.101:9200/_cat/count?format=json",
-                        |                  "method": "GET",
-                        |                  "key_bulk_count": "count"
-                        |              }
-                        |          }
-                        |      ]
-                        |  }
+                        | "took": 2,
+                        | "timed_out": false,
+                        | "_shards": {
+                        |     "total": 5,
+                        |     "successful": 5,
+                        |     "failed": 0
+                        | },
+                        | "hits": {
+                        |     "total": 1,
+                        |     "max_score": 1,
+                        |     "hits": [
+                        |         {
+                        |             "_index": "monitor_db_rest",
+                        |             "_type": "rest",
+                        |             "_id": "1",
+                        |             "_score": 1,
+                        |             "_timestamp": 1464154284797,
+                        |             "_source": {
+                        |                 "ip": "10.148.16.101",
+                        |                 "logtype": "ESAPI",
+                        |                 "appname": "letv-online-analysis",
+                        |                 "url": "http://10.148.16.101:9200/_cat/count?format=json",
+                        |                 "method": "GET",
+                        |                 "key_bulk_count": "count"
+                        |             }
+                        |         },
+                        |         {
+                        |             "_index": "monitor_db_rest",
+                        |             "_type": "rest",
+                        |             "_id": "1",
+                        |             "_score": 1,
+                        |             "_timestamp": 1464154284797,
+                        |             "_source": {
+                        |                 "ip": "10.148.16.101",
+                        |                 "logtype": "ESAPI",
+                        |                 "appname": "letv-online-analysis",
+                        |                 "url": "http://10.148.16.101:9200/_cat/count?format=json",
+                        |                 "method": "GET",
+                        |                 "key_bulk_count": "count"
+                        |             }
+                        |         }
+                        |     ]
+                        | }
                         |} """.stripMargin)
 
     println((akg \ "hits" \ "hits")(0) \ "_source" \ "method")
