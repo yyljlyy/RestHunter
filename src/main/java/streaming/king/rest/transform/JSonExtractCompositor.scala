@@ -42,8 +42,9 @@ class JSonExtractCompositor[T] extends Compositor[T] with CompositorHelper {
     val _flat = flat
 
     val newMrs = mrs.flatMap { f =>
+      //var keyWithPath = f.filter(f => f._1.startsWith(_keyPrefix)).map(f => (f._1, f._2.asInstanceOf[String])).toMap
+      val keyWithPath = f.filter(f => f._1.startsWith(_keyPrefix)).flatMap(f => f._2.asInstanceOf[String].split(",")).map{f=>val arr=f.split(":");(arr(0),arr(1))}
 
-      val keyWithPath = f.filter(f => f._1.startsWith(_keyPrefix)).map(f => (f._1, f._2.asInstanceOf[String])).toMap
       val json = f(_resultKey).toString
 
       val newValue = keyWithPath.map { kPath =>

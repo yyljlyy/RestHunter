@@ -10,6 +10,8 @@ import net.sf.json.{JSONArray, JSONObject}
 import serviceframework.dispatcher.StrategyDispatcher
 import streaming.core.strategy.platform.PlatformManager
 
+import scala.collection.JavaConversions._
+
 /**
  * 5/25/16 WilliamZhu(allwefantasy@gmail.com)
  */
@@ -39,8 +41,20 @@ class ESService @Inject()(settings: Settings,
     JSONArray.fromObject(toJsonStr(result))
   }
 
+  def listWithPage(sql: String, from: Long, size: Long) = {
+    val response = transportService.get(queryUrl, WowCollections.map("sql", s"${sql} limit ${from},${size}").asInstanceOf[java.util.Map[String, String]])
+    import net.liftweb.json._
+    implicit val formats = net.liftweb.json.DefaultFormats
+    val json = parse(response.getContent)
+    val result = json \ "hits" \ "hits"
+    val total =  json \ "hits" \ "total"
+    (JSONArray.fromObject(toJsonStr(result)),toJsonStr(total).toLong)
+  }
+
   def jsave(item: java.util.Map[String, String]) = {
-    val response = transportService.http(saveUrl, toJsonMap4J(item), RestRequest.Method.POST)
+    val id=item("id").asInstanceOf[String]
+    val url = new Url(s"${saveUrl}/$id")
+    val response = transportService.http(url, toJsonMap4J(item), RestRequest.Method.PUT)
     response != null && response.getStatus == 200
   }
 
