@@ -4,7 +4,7 @@
 
     <groupId>RestHunter</groupId>
     <artifactId>streaming.king</artifactId>
-    <version>1.0-SNAPSHOT-${spark.version}</version>
+    <version>1.1-SNAPSHOT-${spark.version}</version>
     <packaging>jar</packaging>
 
     <name>streaming.king</name>
