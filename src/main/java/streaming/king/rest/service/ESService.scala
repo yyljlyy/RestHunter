@@ -20,12 +20,6 @@ class ESService @Inject()(settings: Settings,
                           transportService: HttpTransportService
                            ) extends JSONHelper {
 
-  def platformManager = PlatformManager.getOrCreate
-
-  def dispatcher = StrategyDispatcher.getOrCreate(null)
-
-  def runtime(name: String) = PlatformManager.getRuntime(name, new java.util.HashMap[Any, Any]())
-
   val hostAndPort = settings.get("es.nodes").split(",").head
   val resource = settings.get("es.resource", "monitor_db_rest/rest")
   val queryUrl = new Url(s"http://${hostAndPort}/_sql")

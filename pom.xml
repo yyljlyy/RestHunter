@@ -4,7 +4,7 @@
 
     <groupId>RestHunter</groupId>
     <artifactId>streaming.king</artifactId>
-    <version>1.1-SNAPSHOT-${spark.version}</version>
+    <version>1.1.1-SNAPSHOT-${spark.version}</version>
     <packaging>jar</packaging>
 
     <name>streaming.king</name>
@@ -224,11 +224,31 @@
         <dependency>
             <groupId>streaming.king</groupId>
             <artifactId>streamingpro</artifactId>
-            <version>0.1.5-SNAPSHOT-online-1.5.1</version>
+            <version>0.1.8-SNAPSHOT-online-1.5.1</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.scala-lang</groupId>
                     <artifactId>scala-library</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.spark</groupId>
+                    <artifactId>spark-streaming_2.10</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.spark</groupId>
+                    <artifactId>spark-core_2.10</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>net.liftweb</groupId>
+                    <artifactId>lift-json_2.10</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.jayway.jsonpath</groupId>
+                    <artifactId>json-path</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.elasticsearch</groupId>
+                    <artifactId>elasticsearch-spark_2.10</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
