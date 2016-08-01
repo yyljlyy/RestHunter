@@ -193,18 +193,23 @@
 					jsonReader : {repeatitems : false, userdata : "userdata"},
 					datatype: "json",
 					height: "100%",
-					colNames:[ '','ID','元数据类型','应用名称','应用类型', '调用URL','监控指标'],
+					colNames:[ '','ID','父ID','状态','元数据类型','应用名称','应用类型', '调用URL','方法','调度','参数','监控指标'],
 					colModel:[
 						{name:'testUrl',index:'', width:30, sorttype:"string", editable: false,formatter:function(cellvalue, options, rowObject){
 						  console.log(rowObject.id);
 						  return "<a href=\"/resthunter/test?id="+rowObject.id+"\" style='text-decoration:underline;color:blue' target=_blank>测试</a>";
 						}},					
 						{name:'id',index:'id', width:70, sorttype:"string", editable: true,editoptions:{size:"80",maxlength:"80"}},
+						{name:'metaref',index:'metaref', width:70, sorttype:"string", editable: true,editoptions:{size:"80",maxlength:"80"}},
+						{name:'metastat',index:'metastat',width:30, editable:true,edittype:"select",editoptions:{value:{"valid":"启用","invalid":"禁用"}}},
 						{name:'logtype',index:'logtype',width:30, editable:true,edittype:"select",editoptions:{value:{"REST":"REST","FLUME":"FLUME"}}},
 						{name:'appname',index:'appname', width:70,editable: true,editoptions:{size:"80",maxlength:"80"}},
 						{name:'apptype',index:'apptype', width:30, editable: true,edittype:"select",editoptions:{value:{"ES":"ES","STORM":"STORM","YARN":"YARN","ZOOKEEPER":"ZOOKEEPER"}}},
 						{name:'url',index:'url', width:200, editable: true,editoptions:{size:"80",maxlength:"1000"}},
-						{name:'metrics',index:'metrics', width:150, sortable:false,editable: true,edittype:"custom", edittype:"custom", editoptions:{custom_element: multiFormItem, custom_value: multiFormItemValue}} 
+						{name:'method',index:'method',width:30, editable:true,edittype:"select",editoptions:{value:{"GET":"GET","POST":"POST"}}},
+						{name:'schedule',index:'schedule', width:70, sorttype:"integer", editable: true,editoptions:{size:"80",maxlength:"80"}},	
+						{name:'param',index:'param', width:1,editable: true,editoptions:{size:"80",maxlength:"1000"}},	
+						{name:'metrics',index:'metrics', width:1,sortable:false,editable: true,edittype:"custom", edittype:"custom", editoptions:{custom_element: multiFormItem, custom_value: multiFormItemValue}} 
 					], 
 			
 					viewrecords : true,
@@ -295,7 +300,7 @@
 						//closeAfterEdit: true,
 						url:"/resthunter/create",
 						mtype:"POST",
-						width: 700,
+						width: 800,
 						recreateForm: true,
 						beforeShowForm : function(e) {						    
 							var form = $(e[0]);
@@ -307,7 +312,7 @@
 						//new record form
 						url:"/resthunter/create",
 						mtype:"POST",						
-						width: 700,
+						width: 800,
 						closeAfterAdd: true,
 						recreateForm: true,
 						viewPagerButtons: false,
@@ -354,7 +359,7 @@
 					{
 						//view record form
 						recreateForm: true,
-						width: 700,
+						width: 800,
 						beforeShowForm: function(e){
 							var form = $(e[0]);
 							form.closest('.ui-jqdialog').find('.ui-jqdialog-title').wrap('<div class="widget-header" />');
@@ -367,7 +372,7 @@
 				
 				function style_edit_form(form) {
 					//enable datepicker on "sdate" field and switches for "stock" field
-					form.width=500
+					form.width=600
 					form.find('input[name=sdate]').datepicker({format:'yyyy-mm-dd' , autoclose:true})
 						.end().find('input[name=stock]')
 							.addClass('ace ace-switch ace-switch-5').after('<span class="lbl"></span>');

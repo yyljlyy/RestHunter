@@ -6,19 +6,18 @@ import net.csdn.common.path.Url
 import net.csdn.common.settings.Settings
 import net.csdn.modules.http.RestRequest
 import net.csdn.modules.transport.HttpTransportService
+import net.liftweb.json.JsonAST.JValue
 import net.sf.json.{JSONArray, JSONObject}
-import serviceframework.dispatcher.StrategyDispatcher
-import streaming.core.strategy.platform.PlatformManager
 
 import scala.collection.JavaConversions._
 
 /**
- * 5/25/16 WilliamZhu(allwefantasy@gmail.com)
- */
+  * 5/25/16 WilliamZhu(allwefantasy@gmail.com)
+  */
 @Singleton
 class ESService @Inject()(settings: Settings,
                           transportService: HttpTransportService
-                           ) extends JSONHelper {
+                         ) extends JSONHelper {
 
   val hostAndPort = settings.get("es.nodes").split(",").head
   val resource = settings.get("es.resource", "monitor_db_rest/rest")
@@ -32,7 +31,7 @@ class ESService @Inject()(settings: Settings,
     implicit val formats = net.liftweb.json.DefaultFormats
     val json = parse(response.getContent)
     val result = json \ "hits" \ "hits"
-    JSONArray.fromObject(toJsonStr(result))
+    sourceMap(result)
   }
 
   def listWithPage(sql: String, from: Long, size: Long) = {
@@ -41,12 +40,12 @@ class ESService @Inject()(settings: Settings,
     implicit val formats = net.liftweb.json.DefaultFormats
     val json = parse(response.getContent)
     val result = json \ "hits" \ "hits"
-    val total =  json \ "hits" \ "total"
-    (JSONArray.fromObject(toJsonStr(result)),toJsonStr(total).toLong)
+    val total = json \ "hits" \ "total"
+    sourceMap(result, total)
   }
 
   def jsave(item: java.util.Map[String, String]) = {
-    val id=item("id").asInstanceOf[String]
+    val id = item("id").asInstanceOf[String]
     val url = new Url(s"${saveUrl}/$id")
     val response = transportService.http(url, toJsonMap4J(item), RestRequest.Method.PUT)
     response != null && response.getStatus == 200
@@ -69,6 +68,24 @@ trait JSONHelper {
   def parseJson[T](str: String)(implicit m: Manifest[T]) = {
     implicit val formats = SJSon.DefaultFormats
     SJSon.parse(str).extract[T]
+  }
+
+
+  def sourceMap(jSource: JValue) = {
+    val lSource = jSource.values.asInstanceOf[List[Map[String, Any]]]
+    val result: List[Map[String, Any]] = lSource.map {
+      f => f("_source").asInstanceOf[Map[String, Any]]
+    }
+    result
+  }
+
+  def sourceMap(jSource: JValue, jTotal: JValue) = {
+    val lSource = jSource.values.asInstanceOf[List[Map[String, Any]]]
+    val lTotal = jTotal.values.asInstanceOf[BigInt].toLong
+    val result: List[Map[String, Any]] = lSource.map {
+      f => f("_source").asInstanceOf[Map[String, Any]]
+    }
+    (result, lTotal)
   }
 
   def toJsonStr(item: AnyRef) = {
