@@ -224,7 +224,7 @@
         <dependency>
             <groupId>streaming.king</groupId>
             <artifactId>streamingpro</artifactId>
-            <version>0.3.4-SNAPSHOT-online-1.6.1</version>
+            <version>0.3.6-SNAPSHOT-online-1.6.1</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.scala-lang</groupId>
