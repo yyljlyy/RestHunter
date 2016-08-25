@@ -107,7 +107,15 @@ project/plugins/project/
 /src/main/resources-debug/hdfs-site.xml
 /src/main/resources-debug/yarn-site.xml
 /src/main/resources-debug/mapred-site.xml
-/src/main/resources-debug/strategy.v2.json
+/src/main/resources-debug/ace/
+/src/main/resources-debug/bootstrap-3.3.5/
+/src/main/resources-debug/bootstrap-tree/
+/src/main/resources-debug/bs/
+/src/main/resources-debug/codemirror-4.10/
+/src/main/resources-debug/js/
+/src/main/resources-debug/dummy.html
+/src/main/resources-debug/jquery-1.10.2.min.js
+/src/main/resources-debug/test.js
 
 /src/main/resources-dev/core-site.xml
 /src/main/resources-dev/hdfs-site.xml
@@ -115,5 +123,4 @@ project/plugins/project/
 /src/main/resources-dev/mapred-site.xml
 /src/main/resources-dev/strategy.v2.json
 
-/src/main/resources-debug
 /src/main/resources-dev
