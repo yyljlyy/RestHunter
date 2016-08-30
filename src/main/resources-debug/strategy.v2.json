@@ -63,13 +63,53 @@
             "fetchLevel": 0,
             "es.nodes": "10.148.16.103:9200,10.148.16.105:9200,10.148.16.50:9200",
             "es.resource": "test_db_restjob/restjob",
-            "es.mapping.id":"id"
+            "es.mapping.id": "id"
           }
         ]
       },
       {
-        "name": "streaming.core.compositor.spark.streaming.output.ConsoleOutputCompositor",
-        "params": []
+        "name": "streaming.king.rest.transform.RestRecordToMapCompositor",
+        "params": [
+          {
+          }
+        ]
+      },
+      {
+        "name": "streaming.core.compositor.spark.streaming.transformation.JavaMapToJSONCompositor",
+        "params": [
+          {
+          }
+        ]
+      },
+      {
+        "name": "streaming.core.compositor.spark.streaming.transformation.JSONTableCompositor",
+        "params": [
+          {
+            "tableName": "rest_result"
+          }
+        ]
+      },
+      {
+        "name": "streaming.king.rest.transform.SQLFunctionCompositor",
+        "params": [
+          {
+            "sql": "select * from rest_result",
+            "outputTableName": "test2"
+          }
+        ]
+      },
+      {
+        "name": "streaming.king.rest.output.SQLJdbcOutputCompositor",
+        "params": [
+          {
+            "url": "jdbc:oracle:thin:@//10.118.28.214/letv",
+            "user": "damsls",
+            "password": "damsls",
+            "driver": "oracle.jdbc.OracleDriver",
+            "dbtable": "APPY_DATAS",
+            "mode": "Append"
+          }
+        ]
       }
     ],
     "configParams": {

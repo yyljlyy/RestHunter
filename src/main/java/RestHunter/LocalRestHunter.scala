@@ -3,7 +3,7 @@ package RestHunter
 import streaming.core.StreamingApp
 
 /**
-  * 5/25/16 WilliamZhu(allwefantasy@gmail.com)
+  * 5/25/16 xiaguobing
   */
 object LocalRestHunter {
   def main(args: Array[String]): Unit = {
