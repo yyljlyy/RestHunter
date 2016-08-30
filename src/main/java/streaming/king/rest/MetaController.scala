@@ -22,7 +22,7 @@ class MetaController @Inject()(esService: ESService) extends ApplicationControll
   def list = {
 
     cPaginate
-    val items = esService.list("select * from monitor_db_rest")
+    val items = esService.list(s"select * from ${esService.resource}")
     paginate.totalItems(items.size)
     renderHtml(200, "/rest/ace.vm", WowCollections.map(
       "feeds", items
@@ -37,7 +37,7 @@ class MetaController @Inject()(esService: ESService) extends ApplicationControll
     if (sidx == "") sidx = "appname"
     val sort = param("sord", "")
     val from = rows * (page - 1)
-    val list = esService.listWithPage(s"select * from monitor_db_rest order by ${sidx} ${sort}", from, rows)
+    val list = esService.listWithPage(s"select * from ${esService.resource} order by ${sidx} ${sort}", from, rows)
     val mapResponse: java.util.Map[String, Any] = Map("rows" -> list._1.map(_.asJava).asJava, "page" -> page, "records" -> list._2, "total" -> Math.ceil(list._2 / rows.toDouble).toInt, "userdata" -> Map().asJava).asJava
     render(200, mapResponse, ViewType.json)
   }

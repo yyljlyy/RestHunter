@@ -1,0 +1,171 @@
+{
+  "RestMonitorEtl": {
+    "desc": "RestMonitorEtl",
+    "strategy": "streaming.core.strategy.SparkStreamingStrategy",
+    "algorithm": [],
+    "ref": [],
+    "compositor": [
+      {
+        "name": "streaming.king.rest.source.ESInputCompositor",
+        "params": [
+          {
+            "es.nodes": "10.148.16.103:9200,10.148.16.105:9200,10.148.16.50:9200",
+            "es.resource": "monitor_db_rest/rest"
+          }
+        ]
+      },
+      {
+        "name": "streaming.king.rest.transform.RestFetchCompositor",
+        "params": [
+          {
+            "resultKey": "result",
+            "keyPrefix": "key_"
+          }
+        ]
+      },
+      {
+        "name": "streaming.king.rest.transform.JSonExtractCompositor",
+        "params": [
+          {
+            "resultKey": "result",
+            "keyPrefix": "metrics"
+          }
+        ]
+      },
+      {
+        "name": "streaming.core.compositor.spark.streaming.output.ConsoleOutputCompositor",
+        "params": []
+      }
+    ],
+    "configParams": {
+    }
+  },
+  "NestRestMonitor": {
+    "desc": "NestRestMonitor",
+    "strategy": "streaming.core.strategy.SparkStreamingStrategy",
+    "algorithm": [],
+    "ref": [],
+    "compositor": [
+      {
+        "name": "streaming.core.compositor.spark.streaming.source.MockInputStreamFromPathCompositor",
+        "params": [
+          {
+            "path": "e:/temp/testjson2.json"
+          }
+        ]
+      },
+      {
+        "name": "RestHunter.RDDCompositor",
+        "params": [
+          {
+          }
+        ]
+      },
+      {
+        "name": "streaming.core.compositor.spark.streaming.transformation.JSONTableCompositor",
+        "params": [
+          {
+            "tableName": "rest_result"
+          }
+        ]
+      },
+      {
+        "name": "streaming.core.compositor.spark.streaming.transformation.SQLCompositor",
+        "params": [
+          {
+            "sql": "select * from rest_result where output='st_component'",
+            "outputTableName": "test2"
+          }
+        ]
+      },
+      {
+        "name": "streaming.core.compositor.spark.streaming.output.SQLPrintOutputCompositor",
+        "params": [
+          {
+          }
+        ]
+      }
+    ],
+    "configParams": {
+    }
+  },
+  "test": {
+    "desc": "测试",
+    "strategy": "streaming.core.strategy.SparkStreamingStrategy",
+    "algorithm": [],
+    "ref": [
+      "testJoinTable"
+    ],
+    "compositor": [
+      {
+        "name": "streaming.core.compositor.spark.streaming.source.MockInputStreamFromPathCompositor",
+        "params": [
+          {
+            "path": "e:/temp/testjson2.json"
+          }
+        ]
+      },
+
+      {
+        "name": "streaming.core.compositor.spark.streaming.transformation.JSONTableCompositor",
+        "params": [
+          {
+            "tableName": "test"
+          }
+        ]
+      },
+      {
+        "name": "streaming.core.compositor.spark.streaming.transformation.SQLCompositor",
+        "params": [
+          {
+            "sql": "select name as a, \"5\" as b from test",
+            "outputTableName": "test2"
+          }
+        ]
+      },
+      {
+        "name": "streaming.core.compositor.spark.streaming.transformation.SQLCompositor",
+        "params": [
+          {
+            "sql": "select t2.a,t2.b from test2 t2, testJoinTable t3 where t2.a = t3.a"
+          }
+        ]
+      },
+      {
+        "name": "streaming.core.compositor.spark.streaming.output.SQLPrintOutputCompositor",
+        "params": [
+          {
+          }
+        ]
+      }
+    ],
+    "configParams": {
+    }
+  },
+  "testJoinTable": {
+    "desc": "测试",
+    "strategy": "streaming.core.strategy.SparkStreamingRefStrategy",
+    "algorithm": [],
+    "ref": [],
+    "compositor": [
+      {
+        "name": "streaming.core.compositor.spark.source.MockJsonCompositor",
+        "params": [
+          {"a":"name1"},
+          {"a":"name4"},
+          {"a":"name5"}
+        ]
+      },
+      {
+        "name": "streaming.core.compositor.spark.transformation.JSONRefTableCompositor",
+        "params": [
+          {
+            "tableName": "testJoinTable"
+          }
+        ]
+      }
+    ],
+    "configParams": {
+    }
+  }
+}

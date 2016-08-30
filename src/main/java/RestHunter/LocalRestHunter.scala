@@ -1,6 +1,5 @@
 package RestHunter
 
-import org.apache.velocity.app.Velocity
 import streaming.core.StreamingApp
 
 /**
@@ -9,7 +8,7 @@ import streaming.core.StreamingApp
 object LocalRestHunter {
   def main(args: Array[String]): Unit = {
     val newArgs = Array(
-      "-streaming.duration", "30",
+      "-streaming.duration", "10",
       "-streaming.name", "NestRestMonitor",
       "-streaming.jobs", "NestRestMonitor",
       "-streaming.rest", "true"

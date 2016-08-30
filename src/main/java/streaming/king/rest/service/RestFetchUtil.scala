@@ -1,18 +1,20 @@
 package streaming.king.rest.service
 
+import java.nio.charset.Charset
 import java.util
 
 import net.csdn.common.path.Url
 import org.apache.http.client.fluent.Request
-import org.apache.http.entity.ContentType
+import org.apache.http.message.BasicNameValuePair
 import org.apache.http.util.EntityUtils
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
-import org.apache.spark.streaming.dstream.DStream
+import org.joda.time.DateTime
+import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
 import streaming.core.strategy.platform.{PlatformManager, SparkStreamingRuntime}
 
-import scala.collection.JavaConverters._
 import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 /**
   * Created by xiaguobing on 2016/7/22.
@@ -22,9 +24,17 @@ object RestFetchUtil {
   def urlRequest(requestMap: Map[String, Any]) = {
     val _keyPrefix = "metrics"
     val method: String = requestMap.getOrElse("method", "GET").asInstanceOf[String]
+    val params: String = requestMap.getOrElse("params", "-").asInstanceOf[String]
+    val headers: String = requestMap.getOrElse("headers", "-").asInstanceOf[String]
+    val paramsMap: java.util.Map[String, String] = if (params == "-" || params == "") new java.util.LinkedHashMap[String, String]() else JSONPath.read(params, "$").asInstanceOf[java.util.Map[String, String]]
+    val headersMap: java.util.Map[String, String] = if (headers == "-" || headers == "") new java.util.LinkedHashMap[String, String]() else JSONPath.read(headers, "$").asInstanceOf[java.util.Map[String, String]]
     val res = method match {
-      case "POST" => Request.Post(new Url(requestMap("url").toString).toURI).bodyString(requestMap("param").toString, ContentType.APPLICATION_FORM_URLENCODED).execute()
-      case _ => Request.Get(new Url(requestMap("url").toString).toURI).execute()
+      case "POST" => Request.Post(new Url(requestMap("url").toString).toURI).bodyForm(paramsMap.map(f => new BasicNameValuePair(f._1, f._2)).toSeq, Charset.forName("utf-8")).execute()
+      case _ => {
+        val request: Request = Request.Get(new Url(requestMap("url").toString).toURI)
+        headersMap.foreach(f => request.addHeader(f._1, f._2))
+        request.execute()
+      }
     }
     //val res = Request.Get(new Url(requestMap("url").toString).toURI).execute()
     val response = res.returnResponse()
@@ -121,6 +131,57 @@ object RestFetchUtil {
       list.add(map)
       if (map("metaref") != "-") urlTree(map("metaref").asInstanceOf[String], esService, list)
     }
+  }
+
+  def urlParse(url: String, syncValue: String): Map[String, Any] = {
+    val urlPattern = ".*\\{(syncValue)::([A-Z]+)::([_0123456789]+)::(.*)\\}.*".r
+    url match {
+      case urlPattern(syncField, syncType, syncInterval, syncPattern) => {
+        val ft: DateTimeFormatter = DateTimeFormat.forPattern(syncPattern)
+        val defaultValue: String = if (syncType == "DATE") DateTime.now().toString(ft) else syncPattern
+        val syncDefaultValue: String = if (syncValue == "-") defaultValue else syncValue
+        val syncLong: Long = if (syncType == "DATE") DateTime.parse(syncDefaultValue, ft).getMillis else syncDefaultValue.toLong
+        val syncString: String = if (syncType == "DATE") {
+          val intervals: Array[Long] = syncInterval.split("_").map(i => i.toLong)
+          val nowLong: Long = DateTime.parse(DateTime.now().toString(ft), ft).getMillis
+          val minusLong = nowLong - syncLong
+          val intervalsValid = intervals.filter(_ <= minusLong)
+          val interval: Long = if (intervalsValid.isEmpty) nowLong else intervalsValid.max + syncLong
+          new DateTime(interval).toString(ft)
+        } else {
+          (syncLong + syncInterval.toLong).toString
+        }
+        val newUrl = url.replaceAll("\\{.*\\}", syncString)
+        Map("url" -> newUrl, "syncValue" -> syncString)
+      }
+      case _ => Map("syncValue" -> "-")
+    }
+  }
+
+  def main(args: Array[String]): Unit = {
+    println(DateTime.now().toString("yyyy-MM-dd"))
+    val urlPattern = ".*\\{(syncValue)::([A-Z]+)::(.*)\\}.*".r
+    val url: String = " http://api.umeng.com/base_data?appkey=54ac95cbfd98c5335000086d&date={syncValue::DATE::yyyy-MM-dd}"
+    val urlPattern(syncField, syncType, syncPattern) = url
+    val newUrl = url.replaceAll("\\{.*\\}", DateTime.now().toString(syncPattern))
+    println(newUrl)
+
+    //    val map = Map(
+    //      "id" -> "cdn35_component",
+    //      "metrics" -> "key_records:$",
+    //      "appname" -> "cdn35",
+    //      "logtype" -> "REST",
+    //      "apptype" -> "STORM",
+    //      "url" -> "http://api.umeng.com/apps",
+    //      "method" -> "GET",
+    //      "output" -> "t1",
+    //      "params" -> "-",
+    //      "headers" -> "{\"Authorization\":\"Basic bi3R0Ym94QDEyNi5jb206YTEyMzQ1Ng==\"}",
+    //      "schedule" -> "0",
+    //      "metastat" -> "valid",
+    //      "metaref" -> "umeng_apps"
+    //    )
+    //    println(urlRequest(map))
   }
 
 }

@@ -5,13 +5,14 @@ import java.util
 import org.apache.log4j.Logger
 import org.apache.spark.rdd.RDD
 import org.apache.spark.streaming.dstream.DStream
+import org.elasticsearch.spark._
 import org.joda.time.DateTime
+import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
 import serviceframework.dispatcher.{Compositor, Processor, Strategy}
 import streaming.core.compositor.spark.streaming.CompositorHelper
 import streaming.king.rest.service.RestFetchUtil
 
 import scala.collection.JavaConversions._
-import org.elasticsearch.spark._
 
 
 /**
@@ -28,6 +29,10 @@ class NestRestHandlerCompositor[T] extends Compositor[T] with CompositorHelper {
 
   def keyPrefix = {
     config("keyPrefix", _configParams).getOrElse("key_")
+  }
+
+  def fetchLevel = {
+    config("fetchLevel", _configParams).getOrElse(3)
   }
 
   private def esParams = {
@@ -57,6 +62,8 @@ class NestRestHandlerCompositor[T] extends Compositor[T] with CompositorHelper {
     val _esResource = esResource
     val _esQuery = esQuery
     val _esParams = esParams
+    val _fetchLevel = fetchLevel
+    //val _sqlContext: SQLContext = sqlContextHolder(params)
     val newMrs = mrs.transform {
       tdd =>
         val rdd1 = tdd.map(f => (f("id").asInstanceOf[String], f))
@@ -70,9 +77,17 @@ class NestRestHandlerCompositor[T] extends Compositor[T] with CompositorHelper {
               case -1 => f.get("executeTime").isDefined
               case interval if (interval > 0) => now.getMillis > interval + f.getOrElse("executeTime", 0L).asInstanceOf[Long]
             }
+        }.map {
+          f =>
+            val url: String = f.getOrElse("url", "-").asInstanceOf[String]
+            val syncValue: String = f.getOrElse("syncValue", "-").asInstanceOf[String]
+            f ++ RestFetchUtil.urlParse(url, syncValue)
         }
         //Save executeTime
-        rdd.map(f => Map("id" -> f("id"), "executeTime" -> now.getMillis)).saveToEs(_esResource, _esParams)
+        rdd.map {
+          f =>
+            Map("id" -> f("id"), "executeTime" -> now.getMillis, "syncValue" -> f("syncValue"))
+        }.saveToEs(_esResource, _esParams)
         rdd
     }.filter(f => f("metastat") != "invalid").map { f =>
       val ref: String = f("metaref").asInstanceOf[String]
@@ -83,11 +98,14 @@ class NestRestHandlerCompositor[T] extends Compositor[T] with CompositorHelper {
       }
     }.filter(f => f._2.nonEmpty)
     var fetchResult: DStream[(String, Map[String, Any])] = newMrs
-    for (i <- 1 to 5) {
+    for (i <- 1 to _fetchLevel) {
       //支持5层的嵌套
       fetchResult = nestedRestFetch(fetchResult)
     }
-    List(fetchResult.asInstanceOf[T])
+    //val validColumns = List("id", "metaref", "metastat", "logtype", "appname", "apptype", "url", "method", "schedule", "output", "key_records", "headers", "params", "metrics")
+    //val mapResult: DStream[Map[String, Any]] = fetchResult.map(f => f._2).map(f => f.filter(f1 => validColumns.contains(f1._1)))
+    val mapResult: DStream[Map[String, Any]] = fetchResult.map(f => f._2) //.map(f => f.filter(f1 => validColumns.contains(f1._1)))
+    List(mapResult.asInstanceOf[T])
   }
 
   def nestedRestFetch(nestedResult: DStream[(String, Map[String, Any])]) = {

@@ -50,8 +50,8 @@
         "name": "streaming.king.rest.source.ESInputCompositor",
         "params": [
           {
-            "es.nodes": "10.148.16.103:9200,10.148.16.105:9200,10.148.16.50:9200",
-            "es.resource": "test_db_rest/rest"
+            "es.nodes": "dm-dev-02:9200,dm-dev-03:9200,dm-dev-04:9200,dm-dev-05:9200",
+            "es.resource": "monitor_db_rest/rest"
           }
         ]
       },
@@ -61,15 +61,42 @@
           {
             "keyPrefix": "key_",
             "fetchLevel": 0,
-            "es.nodes": "10.148.16.103:9200,10.148.16.105:9200,10.148.16.50:9200",
-            "es.resource": "test_db_restjob/restjob",
+            "es.nodes": "dm-dev-02:9200,dm-dev-03:9200,dm-dev-04:9200,dm-dev-05:9200",
+            "es.resource": "monitor_db_restjob/restjob",
             "es.mapping.id":"id"
           }
         ]
       },
       {
-        "name": "streaming.core.compositor.spark.streaming.output.ConsoleOutputCompositor",
-        "params": []
+        "name": "streaming.core.compositor.spark.streaming.transformation.ScalaMapToJSONCompositor",
+        "params": [
+          {
+          }
+        ]
+      },
+      {
+        "name": "streaming.core.compositor.spark.streaming.transformation.JSONTableCompositor",
+        "params": [
+          {
+            "tableName": "rest_result"
+          }
+        ]
+      },
+      {
+        "name": "streaming.king.rest.transform.SQL2Compositor",
+        "params": [
+          {
+            "sql": "select * from rest_result",
+            "outputTableName": "test2"
+          }
+        ]
+      },
+      {
+        "name": "streaming.core.compositor.spark.streaming.output.SQLPrintOutputCompositor",
+        "params": [
+          {
+          }
+        ]
       }
     ],
     "configParams": {
