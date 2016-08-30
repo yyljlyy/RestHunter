@@ -1,45 +1,4 @@
 {
-  "RestMonitorEtl": {
-    "desc": "RestMonitorEtl",
-    "strategy": "streaming.core.strategy.SparkStreamingStrategy",
-    "algorithm": [],
-    "ref": [],
-    "compositor": [
-      {
-        "name": "streaming.king.rest.source.ESInputCompositor",
-        "params": [
-          {
-            "es.nodes": "10.148.16.103:9200,10.148.16.105:9200,10.148.16.50:9200",
-            "es.resource": "monitor_db_rest/rest"
-          }
-        ]
-      },
-      {
-        "name": "streaming.king.rest.transform.RestFetchCompositor",
-        "params": [
-          {
-            "resultKey": "result",
-            "keyPrefix": "key_"
-          }
-        ]
-      },
-      {
-        "name": "streaming.king.rest.transform.JSonExtractCompositor",
-        "params": [
-          {
-            "resultKey": "result",
-            "keyPrefix": "metrics"
-          }
-        ]
-      },
-      {
-        "name": "streaming.core.compositor.spark.streaming.output.ConsoleOutputCompositor",
-        "params": []
-      }
-    ],
-    "configParams": {
-    }
-  },
   "NestRestMonitor": {
     "desc": "NestRestMonitor",
     "strategy": "streaming.core.strategy.SparkStreamingStrategy",
